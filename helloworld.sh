@@ -7,5 +7,5 @@
 
 
 # Main
-"I am working perfectly"
+echo "I am working perfectly"
 # End
