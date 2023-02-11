@@ -1,16 +1,29 @@
-prompt="     ☠︎ \e[31mYOU HAVE LAUNCED PID SUPER KILLER\e[0m☠︎\nEnter PID to kill a process or press 'ctrl+C' to exit."
-# there is no PID 0
-PID=0
+#!/bin/bash
 
-until [ $PID == "exit" ]
-do
-# ps -aux  will show processes running
-    ps aux
-# here echo grabs the string above asking the user to either enter a PID to kill or exit the program    
-    echo -e $prompt
-# read allows for imput from the user.  Here it is asking for a PID   
-    read PID
-# this sudo command "kill -9" is used to kill processes    
-    sudo kill -9 $PID
-    
-done
+# Get a list of running processes
+processes=$(ps -eo pid,user,%cpu,%mem,cmd --sort=-%cpu | awk 'NR>1')
+
+# Display the list of processes
+echo "PID   USER   %CPU   %MEM   COMMAND"
+echo "$processes"
+
+# Ask the user for the PID of a process
+read -p "Enter the PID of the process to kill: " pid
+
+# Check if the process with the provided PID exists
+if ! ps -p "$pid" > /dev/null 2>&1; then
+    echo "ERROR: No process found with PID $pid."
+    exit 1
+fi
+
+# Kill the process with the provided PID
+kill "$pid"
+
+# Check if the process was successfully killed
+if ! ps -p "$pid" > /dev/null 2>&1; then
+    echo "Success: The process with PID $pid was killed."
+    exit 0
+else
+    echo "ERROR: Failed to kill the process with PID $pid."
+    exit 1
+fi
