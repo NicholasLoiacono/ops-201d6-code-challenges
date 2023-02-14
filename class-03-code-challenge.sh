@@ -37,9 +37,26 @@
 # TheITGuy. (2018, January 11). How to: Monitor user log in and log off without 3rd party software. Spiceworks. https://community.spiceworks.com/how_to/82-monitor-user-log-in-and-log-off-without-3rd-party-software
 
 #!/bin/bash
-show_login_history() {
-    local username=$1
-    local num_logins=${2:-10}
+# show_login_history() {
+#     local username=$1
+#     local num_logins=${2:-10}
 
-    last -n $num_logins -x $username
+#     last -n $num_logins -x $username
+# }
+
+# This code challenge was a major struggle for me!
+
+#!/bin/bash
+
+# Function to format and print the output
+print_history() {
+  echo "User            Date                   Time     From"
+  echo "---------------------------------------------------"
+  printf '%s\n' "$1"
 }
+
+# Variable to store the output of the last command
+history=$(last)
+
+# Call the function to print the output
+print_history "$history"
