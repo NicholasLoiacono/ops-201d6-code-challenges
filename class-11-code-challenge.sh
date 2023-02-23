@@ -10,66 +10,77 @@
 # Main
 
 
-# Enable File and Printer Sharing
+# Enable File and Printer Sharing on Windows Firewall
 Set-NetFirewallRule -DisplayGroup "File and Printer Sharing" -Enabled True
 
-# Allow ICMP traffic
-New-NetFirewallRule -DisplayName "ICMPv4" -Protocol ICMPv4 -IcmpType 8 -Enabled True
+# Enable File and Printer Sharing on the network adapter
+Get-NetAdapter | Where-Object {$_.Name -like "*Ethernet*"} | Set-NetAdapterAdvancedProperty -DisplayName "File and Printer Sharing for Microsoft Networks" -DisplayValue "Enabled"
 
-# Enable Remote management
+# Allow ICMP traffic in Windows Firewall
+New-NetFirewallRule -DisplayName "ICMPv4" -Protocol ICMPv4
+
+# Enable ICMP traffic on the network adapter
+Get-NetAdapter | Where-Object {$_.Name -like "*Ethernet*"} | Set-NetAdapterAdvancedProperty -DisplayName "Allow ICMP responses" -DisplayValue "Enabled"
+
+# Enable remote management in Windows Firewall
+Enable-NetFirewallRule -DisplayGroup "Remote Management"
+
+# Enable WinRM service for remote management
 Enable-PSRemoting -Force
 
-# Remove bloatware
-Get-AppxPackage | Where-Object {$_.Name -notlike "*store*" -and $_.Name -notlike "*calculator*"} | Remove-AppxPackage
+# Get a list of installed apps
+$Apps = Get-AppxPackage | Select-Object Name, PackageFullName
 
-# Enable Hyper-V
+# Define a list of bloatware apps to remove
+$Bloatware = @(
+    "Microsoft.3DBuilder",
+    "Microsoft.MicrosoftOfficeHub",
+    "Microsoft.Messaging",
+    "Microsoft.MicrosoftStickyNotes",
+    "Microsoft.OneConnect",
+    "Microsoft.People",
+    "Microsoft.Print3D",
+    "Microsoft.SkypeApp",
+    "Microsoft.StorePurchaseApp",
+    "Microsoft.Wallet",
+    "Microsoft.WindowsAlarms",
+    "Microsoft.WindowsCalculator",
+    "Microsoft.WindowsCamera",
+    "Microsoft.WindowsMaps",
+    "Microsoft.WindowsPhone",
+    "Microsoft.WindowsSoundRecorder",
+    "Microsoft.XboxApp",
+    "Microsoft.XboxGameOverlay",
+    "Microsoft.XboxIdentityProvider",
+    "Microsoft.XboxSpeechToTextOverlay",
+    "Microsoft.ZuneMusic",
+    "Microsoft.ZuneVideo"
+)
+
+# Remove bloatware apps
+foreach ($App in $Apps) {
+    if ($Bloatware -contains $App.PackageFullName) {
+        Write-Host "Removing $($App.Name)..."
+        Remove-AppxPackage $App.PackageFullName -AllUsers
+    }
+}
+
+# Enable Hyper-V feature
 Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All
 
-# Disable SMBv1, an insecure protocol
+# Restart computer to apply changes
+Restart-Computer -Force
+
+# Disable SMBv1 on the current computer
 Set-SmbServerConfiguration -EnableSMB1Protocol $false
-Set-SmbClientConfiguration -EnableSMB1Protocol $false
+Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" SMB1 -Type DWORD -Value 0 -Force
+Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\mrxsmb10" Start -Type DWORD -Value 4 -Force
 
-# Test and validate desired outcomes
-# Test File and Printer Sharing
-if ((Get-NetFirewallRule -DisplayGroup "File and Printer Sharing").Enabled) {
-    Write-Host "File and Printer Sharing is enabled"
-} else {
-    Write-Host "File and Printer Sharing is not enabled"
-}
-
-# Test ICMP traffic
-if ((Get-NetFirewallRule -DisplayName "ICMPv4").Enabled) {
-    Write-Host "ICMP traffic is allowed"
-} else {
-    Write-Host "ICMP traffic is not allowed"
-}
-
-# Test Remote management
-if ((Get-Service WinRM).Status -eq "Running") {
-    Write-Host "Remote management is enabled"
-} else {
-    Write-Host "Remote management is not enabled"
-}
-
-# Test bloatware removal
-if ((Get-AppxPackage | Where-Object {$_.Name -notlike "*store*" -and $_.Name -notlike "*calculator*"}).Count -eq 0) {
-    Write-Host "Bloatware has been removed"
-} else {
-    Write-Host "Bloatware has not been removed"
-}
-
-# Test Hyper-V
-if ((Get-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V).State -eq "Enabled") {
-    Write-Host "Hyper-V is enabled"
-} else {
-    Write-Host "Hyper-V is not enabled"
-}
-
-# Test SMBv1 disablement
-if ((Get-SmbServerConfiguration).EnableSMB1Protocol -eq $false -and (Get-SmbClientConfiguration).EnableSMB1Protocol -eq $false) {
-    Write-Host "SMBv1 has been disabled"
-} else {
-    Write-Host "SMBv1 has not been disabled"
+# Disable SMBv1 on remote computers
+Invoke-Command -ComputerName <computername> -ScriptBlock {
+    Set-SmbServerConfiguration -EnableSMB1Protocol $false
+    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\LanmanServer\Parameters" SMB1 -Type DWORD -Value 0 -Force
+    Set-ItemProperty -Path "HKLM:\SYSTEM\CurrentControlSet\Services\mrxsmb10" Start -Type DWORD -Value 4 -Force
 }
 
 # End
