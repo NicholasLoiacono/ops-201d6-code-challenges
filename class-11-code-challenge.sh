@@ -3,7 +3,8 @@
 # Script: Ops 201d6 Class 11 Ops Challenge Solution
 # Author: Nicholas Loiacono
 # Date: 02/20/2023
-# Purpose: Print a string to the terminal
+# Purpose: Automate the systems configuration of a new Windows 10 deployment.
+# Resource: https://github.com/superswan/Powershell-SysAdmin
 
 
 # Main
