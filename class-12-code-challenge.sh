@@ -1,4 +1,13 @@
-Nicholas Loiacono 2/21/2023
+
+
+# Script: Ops 201d6 Class 12 Ops Challenge Solution
+# Author: Nicholas Loiacono
+# Date: 02/21/2023
+# Purpose: Use a Powershell script to return the IPv4 Address of the Computer.
+
+
+# Main
+
 
 # Define a variable to hold the name of the output file
 $outputFile = "network_report.txt"
@@ -21,3 +30,5 @@ Write-Host "IPv4 Address: $ipv4Address"
 
 # Remove the output file
 Remove-Item $outputFile
+
+# End

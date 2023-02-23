@@ -1,3 +1,14 @@
+
+
+# Script: Ops 201d6 Class 11 Ops Challenge Solution
+# Author: Nicholas Loiacono
+# Date: 02/20/2023
+# Purpose: Print a string to the terminal
+
+
+# Main
+
+
 # Enable File and Printer Sharing
 Set-NetFirewallRule -DisplayGroup "File and Printer Sharing" -Enabled True
 
@@ -59,3 +70,5 @@ if ((Get-SmbServerConfiguration).EnableSMB1Protocol -eq $false -and (Get-SmbClie
 } else {
     Write-Host "SMBv1 has not been disabled"
 }
+
+# End
